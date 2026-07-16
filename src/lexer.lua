@@ -14,10 +14,23 @@ M.keywords = {
 
 M.ident = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 M.digits = "0123456789"
+M.suffixes = "fFdDlLuUsS"
 M.operators = "-+*/^><%"
 M.whitespace = " \t\n\r"
+M.escapes = {
+  ["n"] = "\n",
+  ["t"] = "\t",
+  ["r"] = "\r",
+  ["\\"] = "\\",
+  ["b"] = "\b",
+  ["f"] = "\f",
+  ["v"] = "\v",
+  ["\""] = "\"",
+  ["'"] = "'",
+  ["0"] = "\0"
+}
 
-function M.l(str)
+function M.l(file, str)
   local idx = 1
   local toks = {}
 
@@ -31,10 +44,41 @@ function M.l(str)
       while idx <= #str and contains(M.ident, str:sub(idx, idx)) do
         inc()
       end
-      table.insert(toks, str:sub(start, idx - 1))
+
+      local val = str:sub(start, idx - 1)
+      local type = (contains(M.keywords, val) and "keyword") or "ident"
+      table.insert(toks, {["type"] = type, ["value"] = val})
     elseif contains(M.digits, char) then
-      table.insert(toks, char)
+      local start = idx
+      while idx <= #str and contains(M.digits, str:sub(idx, idx)) do
+        inc()
+      end
+
+      local val = str:sub(start, idx - 1)
+      table.insert(toks, {["type"] = "number", ["value"] = val})
+    elseif char == '"' then
+      local start = idx
+      local val = ""
       inc()
+      while idx <= #str and str:sub(idx, idx) ~= '"' do
+        local chr = str:sub(idx, idx)
+        if chr == "\\" then
+          inc()
+          local esc_chr = str:sub(idx, idx)
+          if M.escapes[esc_chr] then
+            val = val .. M.escapes[esc_chr]
+          else
+            val = val .. esc_chr
+          end
+        else
+          val = val .. chr
+        end
+        inc()
+      end
+      if str:sub(idx, idx) == '"' then
+        inc()
+      end
+      table.insert(toks, {["type"] = "string", ["value"] = val})
     else
       inc()
     end

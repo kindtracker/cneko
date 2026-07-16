@@ -13,18 +13,4 @@ function M.contains(tbl, value)
   return false
 end
 
-function M.dump(o)
- if type(o) == 'table' then
-   local s = '{ '
-   for k,v in pairs(o) do
-     local key = k
-     if type(k) ~= 'number' then key = '"'..k..'"' end
-       s = s .. '['..key..'] = ' .. M.dump(v) .. ','
-     end
-     return s .. '} '
-  else
-    return tostring(o)
-  end
-end
-
 return M
