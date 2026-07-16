@@ -1,0 +1,2 @@
+#!/bin/sh
+lua src/main.lua "$1"
