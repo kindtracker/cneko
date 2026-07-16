@@ -149,6 +149,8 @@ function M.l(file, str)
       end
       if str:sub(idx, idx) == '"' then
         inc()
+      else 
+        logger.error("%s:%d:%d expected: \"", file, line, row)
       end
       table.insert(toks, {["type"] = "string", ["value"] = val})
     else
