@@ -18,6 +18,52 @@ M.ident = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 M.digits = "0123456789"
 M.suffixes = "fFdDlLuUsS"
 M.operators = "-+*/^><%"
+M.delimiters = "(){}[]"
+M.delimiter_tokens = {
+  ["("] = {
+    ["type"] = "lparen",
+    ["value"] = "("
+  },
+  [")"] = {
+    ["type"] = "rparen",
+    ["value"] = ")"
+  },
+  ["{"] = {
+    ["type"] = "lbrace",
+    ["value"] = "{"
+  },
+  ["}"] = {
+    ["type"] = "rbrace",
+    ["value"] = "}"
+  },
+  ["["] = {
+    ["type"] = "lbracket",
+    ["value"] = "["
+  },
+  ["]"] = {
+    ["type"] = "rbracket",
+    ["value"] = "]"
+  }
+}
+M.puncts = ",;:."
+M.punct_tokens = {
+  [","] = {
+    ["type"] = "comma",
+    ["value"] = ","
+  },
+  [";"] = {
+    ["type"] = "semicolon",
+    ["value"] = ";"
+  },
+  [":"] = {
+    ["type"] = "colon",
+    ["value"] = ":"
+  },
+  ["."] = {
+    ["type"] = "dot",
+    ["value"] = "."
+  }
+}
 M.whitespace = " \t\n\r"
 M.escapes = {
   ["n"] = "\n",
@@ -40,21 +86,18 @@ function M.l(file, str)
 
   local function inc()
     idx = idx + 1
+    row = row + 1
   end
   while idx <= #str do
     local char = str:sub(idx, idx)
+
     if char == "\n" then
+      idx = idx + 1
       line = line + 1
       row = 1
-      goto continue
-    end
-    row = row + 1
-    if contains(M.whitespace, char) then
+    elseif contains(M.whitespace, char) then
       inc()
-      goto continue
-    end
-
-    if contains(M.ident, char) then
+    elseif contains(M.ident, char) then
       local start = idx
       while idx <= #str and contains(M.ident, str:sub(idx, idx)) do
         inc()
@@ -71,13 +114,27 @@ function M.l(file, str)
 
       local val = str:sub(start, idx - 1)
       table.insert(toks, {["type"] = "number", ["value"] = val})
+    elseif char == "-" and str:sub(idx+1,idx+1) == ">" then
+      inc() inc()
+      table.insert(toks, {["type"] = "rarrow", ["value"] = "->"})
+    elseif contains(M.delimiters, char) then
+      inc() 
+      local token = M.delimiter_tokens[char]
+      table.insert(toks, {["type"] = token.type, ["value"] = token.value})
+    elseif contains(M.puncts, char) then
+      inc()
+      local token = M.punct_tokens[char]
+      table.insert(toks, {["type"] = token.type, ["value"] = token.value})
+    elseif contains(M.operators, char) then
+      inc()
+      table.insert(toks, {["type"] = "operator", ["value"] = char})
     elseif char == '"' then
       local start = idx
       local val = ""
       inc()
       while idx <= #str and str:sub(idx, idx) ~= '"' do
         local chr = str:sub(idx, idx)
-        if chr == "\\" then
+        if chr == "\\" and idx < #str then
           inc()
           local esc_chr = str:sub(idx, idx)
           if M.escapes[esc_chr] then
@@ -95,11 +152,9 @@ function M.l(file, str)
       end
       table.insert(toks, {["type"] = "string", ["value"] = val})
     else
-      logger.error("%s:%d:%d: invalid token: %s", file, line, row, char)
+      logger.error("%s:%d:%d: invalid token: '%s'", file, line, row, char)
       inc()
     end
-
-    ::continue::
   end
   return toks
 end
