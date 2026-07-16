@@ -23,6 +23,7 @@ end
 function M.error(text, ...)
   local source = debug.getinfo(2).source
   print(string.format("[" .. red .. "error" .. reset .. "] %s: " .. text, source, ...))
+  os.exit(1)
 end
 
 

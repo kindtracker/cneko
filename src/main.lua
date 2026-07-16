@@ -7,7 +7,7 @@ local fname = arg[1]
 local f = io.open(fname, "rb")
 local program = f:read("*all")
 
-logger.log(string.format("lexing %s file", fname))
+logger.log("lexing %s file", fname)
 local toks = lexer.l(fname, program)
 
 print(inspect(toks))

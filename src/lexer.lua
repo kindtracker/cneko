@@ -1,5 +1,7 @@
 local helper = require("src/helper")
+local logger = require("src/logger")
 local contains = helper.contains
+
 local M = {}
 
 M.keywords = {
@@ -32,6 +34,8 @@ M.escapes = {
 
 function M.l(file, str)
   local idx = 1
+  local line = 1
+  local row = 0
   local toks = {}
 
   local function inc()
@@ -39,6 +43,17 @@ function M.l(file, str)
   end
   while idx <= #str do
     local char = str:sub(idx, idx)
+    if char == "\n" then
+      line = line + 1
+      row = 1
+      goto continue
+    end
+    row = row + 1
+    if contains(M.whitespace, char) then
+      inc()
+      goto continue
+    end
+
     if contains(M.ident, char) then
       local start = idx
       while idx <= #str and contains(M.ident, str:sub(idx, idx)) do
@@ -80,8 +95,11 @@ function M.l(file, str)
       end
       table.insert(toks, {["type"] = "string", ["value"] = val})
     else
+      logger.error("%s:%d:%d: invalid token: %s", file, line, row, char)
       inc()
     end
+
+    ::continue::
   end
   return toks
 end
