@@ -11,6 +11,7 @@ local program = f:read("*all")
 
 logger.log("lexing %s file", fname)
 local toks = lexer.l(fname, program)
+logger.log("parsing %s file", fname)
 local ast = parser.p(toks)
 
-print(inspect(ast))
+print("ast: " .. inspect(ast))
