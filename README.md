@@ -2,8 +2,7 @@
 
 Cneko is a C3-like programming language but no name restricts and etc
 
-(Cneko is in development)
-
+(Cneko is in very development)
 
 ## Credits
 

@@ -11,7 +11,14 @@ M.keywords = {
   "long", "ulong",
   "iptr", "uptr", 
   "sz", "usz",
-  "fn", "void", "null"
+  "fn", "void", "null",
+  "float", "double",
+  "if", "else",
+  "switch", "case", "default",
+  "for", "while", "break", "continue",
+  "return", "const", "static", "const",
+  "extern", "import", "struct", "union", 
+  "enum", "typedef"
 }
 
 M.ident = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
