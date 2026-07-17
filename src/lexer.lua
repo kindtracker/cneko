@@ -18,7 +18,7 @@ M.keywords = {
   "for", "while", "break", "continue",
   "return", "const", "static", "const",
   "extern", "import", "struct", "union", 
-  "enum", "typedef", "true", "false"
+  "enum", "typedef", "true", "false", "string"
 }
 
 M.ident = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"

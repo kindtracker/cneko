@@ -1,4 +1,4 @@
-fn main(argc: int, argv: String[]) -> int {
+fn main(argc: int, argv: string[]) -> int {
   std:io:printfn("Hello, World 69!");
   return 0;
 }
