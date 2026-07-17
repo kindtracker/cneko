@@ -24,7 +24,7 @@ M.keywords = {
 M.ident = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 M.digits = "0123456789"
 M.suffixes = "fFdDlLuUsS"
-M.operators = "-+*/^><%"
+M.operators = "-+*/^><%="
 M.delimiters = "(){}[]"
 M.delimiter_tokens = {
   ["("] = {
@@ -106,7 +106,7 @@ function M.l(file, str)
       inc()
     elseif contains(M.ident, char) then
       local start = idx
-      while idx <= #str and contains(M.ident, str:sub(idx, idx)) do
+      while idx <= #str and (contains(M.ident, str:sub(idx, idx)) or contains(M.digits, str:sub(idx, idx))) do
         inc()
       end
 
