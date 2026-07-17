@@ -1,5 +1,6 @@
 local helper = require("src/helper")
 local lexer = require("src/lexer")
+local parser = require("src/parser")
 local logger = require("src/logger")
 
 local inspect = require("src/inspect")
@@ -10,5 +11,6 @@ local program = f:read("*all")
 
 logger.log("lexing %s file", fname)
 local toks = lexer.l(fname, program)
+local ast = parser.p(toks)
 
-print(inspect(toks))
+print(inspect(ast))

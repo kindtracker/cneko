@@ -18,7 +18,7 @@ M.keywords = {
   "for", "while", "break", "continue",
   "return", "const", "static", "const",
   "extern", "import", "struct", "union", 
-  "enum", "typedef"
+  "enum", "typedef", "true", "false"
 }
 
 M.ident = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
@@ -112,7 +112,7 @@ function M.l(file, str)
 
       local val = str:sub(start, idx - 1)
       local type = (contains(M.keywords, val) and "keyword") or "ident"
-      table.insert(toks, {["type"] = type, ["value"] = val})
+      table.insert(toks, {["type"] = type, ["value"] = val, ["line"] = line, ["row"] = row, ["fname"] = fname})
     elseif contains(M.digits, char) then
       local start = idx
       while idx <= #str and contains(M.digits, str:sub(idx, idx)) do
@@ -120,21 +120,21 @@ function M.l(file, str)
       end
 
       local val = str:sub(start, idx - 1)
-      table.insert(toks, {["type"] = "number", ["value"] = val})
+      table.insert(toks, {["type"] = "number", ["value"] = val, ["line"] = line, ["row"] = row, ["fname"] = fname})
     elseif char == "-" and str:sub(idx+1,idx+1) == ">" then
       inc() inc()
-      table.insert(toks, {["type"] = "rarrow", ["value"] = "->"})
+      table.insert(toks, {["type"] = "rarrow", ["value"] = "->", ["line"] = line, ["row"] = row, ["fname"] = fname})
     elseif contains(M.delimiters, char) then
       inc() 
       local token = M.delimiter_tokens[char]
-      table.insert(toks, {["type"] = token.type, ["value"] = token.value})
+      table.insert(toks, {["type"] = token.type, ["value"] = token.value, ["line"] = line, ["row"] = row, ["fname"] = fname})
     elseif contains(M.puncts, char) then
       inc()
       local token = M.punct_tokens[char]
-      table.insert(toks, {["type"] = token.type, ["value"] = token.value})
+      table.insert(toks, {["type"] = token.type, ["value"] = token.value, ["line"] = line, ["row"] = row, ["fname"] = fname})
     elseif contains(M.operators, char) then
       inc()
-      table.insert(toks, {["type"] = "operator", ["value"] = char})
+      table.insert(toks, {["type"] = "operator", ["value"] = char, ["line"] = line, ["row"] = row, ["fname"] = fname})
     elseif char == '"' then
       local start = idx
       local val = ""
@@ -159,7 +159,7 @@ function M.l(file, str)
       else 
         logger.error("%s:%d:%d expected: \"", file, line, row)
       end
-      table.insert(toks, {["type"] = "string", ["value"] = val})
+      table.insert(toks, {["type"] = "string", ["value"] = val, ["line"] = line, ["row"] = row, ["fname"] = fname})
     else
       logger.error("%s:%d:%d: invalid token: '%s'", file, line, row, char)
       inc()
