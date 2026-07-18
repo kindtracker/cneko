@@ -132,11 +132,18 @@ function M.l(file, str)
       table.insert(toks, {["type"] = type, ["value"] = val, ["line"] = line, ["row"] = row, ["fname"] = fname})
     elseif contains(M.digits, char) then
       local start = idx
-      while idx <= #str and contains(M.digits, str:sub(idx, idx)) do
-        inc()
+      if char == "0" and string.lower(str:sub(idx+1, idx+1)) == "x" then
+        inc() inc()
+        while idx <= #str and contains("0123456789ABCDEFabcdef", str:sub(idx, idx)) do
+          inc()
+        end
+      else
+        while idx <= #str and contains(M.digits, str:sub(idx, idx)) do
+          inc()
+        end
       end
 
-      local val = str:sub(start, idx - 1)
+      local val = tonumber(str:sub(start, idx - 1))
       table.insert(toks, {["type"] = "number", ["value"] = val, ["line"] = line, ["row"] = row, ["fname"] = fname})
     elseif char == "-" and str:sub(idx+1,idx+1) == ">" then
       inc() inc()

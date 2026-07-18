@@ -1,4 +1,4 @@
 fn main(argc: int, argv: string[]) -> int {
-  int a = awea;
-  std:io:printf("test1");
+  int a = 1;
+  std:io:printf(a);
 }

@@ -128,7 +128,7 @@ function M.parg_list(toks, idx)
     end
     idx = idx + 1
 
-    table.insert(arg_list, tok.value)
+    table.insert(arg_list, tok)
   end
   M.expect(toks, idx, "rparen");
   idx = idx + 1
