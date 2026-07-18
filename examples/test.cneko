@@ -1,5 +1,9 @@
+fn add(a: int, b: int) -> int {
+  return 0;
+}
+
 fn main(argc: int, argv: string[]) -> int {
-  int a = 1;
-  a = 3;
-  std:io:printf(a);
+  // int c = add(1, 1);
+  std:io:printf(c);
+  return c;
 }
