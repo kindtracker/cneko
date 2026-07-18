@@ -104,6 +104,23 @@ function M.l(file, str)
       row = 1
     elseif contains(M.whitespace, char) then
       inc()
+    elseif char == "/" and str:sub(idx+1, idx+1) == "/" then
+      while idx <= #str and str:sub(idx, idx) ~= "\n" do
+        idx = idx + 1
+      end
+    elseif char == "/" and str:sub(idx+1, idx+1) == "*" then
+      idx = idx + 2
+      while idx <= #str do
+        if str:sub(idx, idx) == "*" and str:sub(idx+1, idx+1) == "/" then
+          idx = idx + 2
+          break
+        end
+        if str:sub(idx, idx) == "\n" then
+          line = line + 1
+          row = 0
+        end
+        idx = idx + 1
+      end
     elseif contains(M.ident, char) then
       local start = idx
       while idx <= #str and (contains(M.ident, str:sub(idx, idx)) or contains(M.digits, str:sub(idx, idx))) do
