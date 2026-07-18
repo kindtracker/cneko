@@ -6,6 +6,10 @@ local M = {}
 
 function M.expect(toks, idx, type)
   local tok = toks[idx]
+  
+  if tok == nil then
+    logger.error("invalid token")
+  end
   if toks[idx].type == type then
     return tok
   else
@@ -29,7 +33,6 @@ function M.pblock(toks, idx)
     local stat;
     stat, idx = M.pstat(toks, idx)
     table.insert(block, stat)
-    idx = idx + 1
   end
   M.expect(toks, idx, "rbrace")
   idx = idx + 1
@@ -103,6 +106,29 @@ function M.pparm_list(toks, idx)
   return parm_list, idx
 end
 
+function M.parg_list(toks, idx)
+  local arg_list = {}
+
+  M.expect(toks, idx, "lparen");
+  idx = idx + 1
+  while idx <= #toks do 
+    local tok = toks[idx]
+    if tok.type == "rparen" then
+      break
+    elseif tok.type == "comma" then
+      idx = idx + 1
+      tok = toks[idx]
+    end
+    idx = idx + 1
+
+    table.insert(arg_list, tok.value)
+  end
+  M.expect(toks, idx, "rparen");
+  idx = idx + 1
+
+  return arg_list, idx
+end
+
 function M.pfunc(toks, idx)
   local func = {}
   local tok;
@@ -122,14 +148,39 @@ function M.pfunc(toks, idx)
   return func, idx
 end
 
+function M.pcall_expr(toks, idx)
+  local call_expr = {}
+  call_expr.type = "call"
+  local namespace = {}
+  
+  local tok = M.expect(toks, idx, "ident")
+  table.insert(namespace, tok.value)
+  idx = idx + 1
+    
+  while idx <= #toks and toks[idx].type == "colon" do
+    idx = idx + 1
+    if toks[idx].type == "ident" then
+      table.insert(namespace, toks[idx].value)
+      idx = idx + 1
+    end
+  end
+  call_expr.namespace = namespace 
+  call_expr.arg_list, idx = M.parg_list(toks, idx)
+  M.expect(toks, idx, "semicolon")
+  idx = idx + 1
+  return call_expr, idx
+end
+
 function M.pstat(toks, idx)
   local stat = {}
-  local ftok = toks[idx]
+  local tok = toks[idx]
   idx = idx + 1
-  if ftok.type == "keyword" then
-    if ftok.value == "fn" then
+  if tok.type == "keyword" then
+    if tok.value == "fn" then
       stat, idx = M.pfunc(toks, idx)
     end
+  elseif tok.type == "ident" then
+    stat, idx = M.pcall_expr(toks, idx-1) 
   end
   return stat, idx
 end

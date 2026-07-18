@@ -1,3 +1,3 @@
 fn main(argc: int, argv: string[]) -> int {
-  
+  std:io:printf("test1");
 }

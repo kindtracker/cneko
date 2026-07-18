@@ -16,7 +16,8 @@ f:close()
 
 logger.log("lexing %s fname", fname)
 local toks = lexer.l(fname, program)
+print("tokens: " .. inspect(toks))
+
 logger.log("parsing %s fname", fname)
 local ast = parser.p(toks)
-
 print("ast: " .. inspect(ast))
