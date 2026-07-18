@@ -196,6 +196,20 @@ function M.pvar_decl(toks, idx)
   return var, idx
 end
 
+function M.passign(toks, idx)
+  local assign = {}
+  assign.type = "assign"  
+  assign.name = M.expect(toks, idx, "ident").value
+  idx = idx + 1
+  M.expect(toks, idx, "operator")
+  idx = idx + 1
+  assign.value = toks[idx]
+  idx = idx + 1
+  M.expect(toks, idx, "semicolon")
+  idx = idx + 1
+  return assign, idx
+end
+
 function M.pstat(toks, idx)
   local stat = {}
   local tok = toks[idx]
@@ -208,7 +222,12 @@ function M.pstat(toks, idx)
       logger.error("%s:%d:%d: no match for token: %s (%s)", tok.fname, tok.line, tok.row, tok.value, tok.type)
     end
   elseif tok.type == "ident" then
-    stat, idx = M.pcall_expr(toks, idx) 
+    tok = toks[idx+1]
+    if tok and tok.type == "operator" then
+      stat, idx = M.passign(toks, idx)
+    else
+      stat, idx = M.pcall_expr(toks, idx)
+    end
   elseif contains(M.types, tok.value) then
     stat, idx = M.pvar_decl(toks, idx)
   else

@@ -1,4 +1,5 @@
 fn main(argc: int, argv: string[]) -> int {
   int a = 1;
+  a = 3;
   std:io:printf(a);
 }
