@@ -6,12 +6,17 @@ local logger = require("src/logger")
 local inspect = require("src/inspect")
 
 local fname = arg[1]
-local f = io.open(fname, "rb")
-local program = f:read("*all")
+local f = io.open(fname, "r")
+if not f then
+  logger.error("cannot open " .. fname)
+end
 
-logger.log("lexing %s file", fname)
+local program = f:read("*all")
+f:close()
+
+logger.log("lexing %s fname", fname)
 local toks = lexer.l(fname, program)
-logger.log("parsing %s file", fname)
+logger.log("parsing %s fname", fname)
 local ast = parser.p(toks)
 
 print("ast: " .. inspect(ast))

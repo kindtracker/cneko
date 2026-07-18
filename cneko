@@ -1,2 +1,5 @@
 #!/bin/sh
-lua src/main.lua "$1"
+DIR="$(cd "$(dirname "$0")" && pwd)"
+ORIG_DIR="$(pwd)"
+cd "$DIR"
+luajit src/main.lua "$ORIG_DIR/$1" "${@:2}"
