@@ -1,8 +1,15 @@
+local helper = require("src/helper")
 local logger = require("src/logger")
+local contains = helper.contains
 
 local inspect = require("src/inspect")
 
 local M = {}
+
+M.types = {
+  "int", "string", "bool", "char", "float", "double", "void",
+  "ichar", "short", "ushort", "uint", "long", "ulong", "iptr", "uptr", "sz", "usz"
+}
 
 function M.expect(toks, idx, type)
   local tok = toks[idx]
@@ -171,16 +178,41 @@ function M.pcall_expr(toks, idx)
   return call_expr, idx
 end
 
+function M.pvar_decl(toks, idx)
+  local var = {}
+  var.type = "var_decl"
+  var.var_type, idx = M.ptype(toks, idx)
+  var.name = M.expect(toks, idx, "ident").value
+  idx = idx + 1
+  local tok = toks[idx]
+  if tok.type == "operator" and tok.value == "=" then
+    idx = idx + 1
+    var.value = toks[idx].value
+    idx = idx + 1
+  end
+
+  M.expect(toks, idx, "semicolon")
+  idx = idx + 1
+  return var, idx
+end
+
 function M.pstat(toks, idx)
   local stat = {}
   local tok = toks[idx]
-  idx = idx + 1
-  if tok.type == "keyword" then
+
+  if tok.type == "keyword" and not contains(M.types, tok.value) then
     if tok.value == "fn" then
+      idx = idx + 1
       stat, idx = M.pfunc(toks, idx)
+    else
+      logger.error("%s:%d:%d: no match for token: %s (%s)", tok.fname, tok.line, tok.row, tok.value, tok.type)
     end
   elseif tok.type == "ident" then
-    stat, idx = M.pcall_expr(toks, idx-1) 
+    stat, idx = M.pcall_expr(toks, idx) 
+  elseif contains(M.types, tok.value) then
+    stat, idx = M.pvar_decl(toks, idx)
+  else
+    logger.error("%s:%d:%d: no match for token: %s (%s)", tok.fname, tok.line, tok.row, tok.value, tok.type)
   end
   return stat, idx
 end
