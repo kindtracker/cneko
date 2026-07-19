@@ -52,6 +52,51 @@ function M.pnumber(toks, idx)
   return n, idx
 end
 
+function M.pexpr(toks, idx)
+  local expr = {}
+  local tok = toks[idx]
+  
+  if tok.type == "lparen" then
+    idx = idx + 1
+    expr, idx = M.pexpr(toks, idx)
+    M.expect(toks, idx, "rparen")
+    idx = idx + 1
+  elseif tok.type == "number" then
+    expr = {type = "number", value = tok.value}
+    idx = idx + 1
+  elseif tok.type == "ident" then
+    local next_tok = toks[idx + 1]
+    if next_tok and next_tok.type == "lparen" then
+      expr, idx = M.pcall_expr(toks, idx)
+    else
+      expr = {type = "ident", value = tok.value}
+      idx = idx + 1
+    end
+  end
+  
+  while idx <= #toks and toks[idx].type == "operator" do
+    local op = toks[idx].value
+    idx = idx + 1
+    local right_tok = toks[idx]
+    local right
+    if right_tok.type == "lparen" then
+      idx = idx + 1
+      right, idx = M.pexpr(toks, idx)
+      M.expect(toks, idx, "rparen")
+      idx = idx + 1
+    elseif right_tok.type == "number" then
+      right = {type = "number", value = right_tok.value}
+      idx = idx + 1
+    elseif right_tok.type == "ident" then
+      right = {type = "ident", value = right_tok.value}
+      idx = idx + 1
+    end
+    expr = {type = "binop", op = op, left = expr, right = right}
+  end
+  
+  return expr, idx
+end
+
 -- const int[1+1]
 function M.ptype(toks, idx)
   local t = {
@@ -163,7 +208,6 @@ function M.preturn(toks, idx)
   idx = idx + 1
   tok = toks[idx]
 
-  print(tok.type)
   if tok.type == "number" or tok.type == "ident" then
     ret.value = tok
     idx = idx + 1
@@ -194,8 +238,6 @@ function M.pcall_expr(toks, idx)
   end
   call_expr.namespace = namespace 
   call_expr.arg_list, idx = M.parg_list(toks, idx)
-  M.expect(toks, idx, "semicolon")
-  idx = idx + 1
   return call_expr, idx
 end
 
@@ -208,8 +250,7 @@ function M.pvar_decl(toks, idx)
   local tok = toks[idx]
   if tok.type == "operator" and tok.value == "=" then
     idx = idx + 1
-    var.value = toks[idx].value
-    idx = idx + 1
+    var.value, idx = M.pexpr(toks, idx)
   end
 
   M.expect(toks, idx, "semicolon")
@@ -224,8 +265,7 @@ function M.passign(toks, idx)
   idx = idx + 1
   M.expect(toks, idx, "operator")
   idx = idx + 1
-  assign.value = toks[idx]
-  idx = idx + 1
+  assign.value = M.pexpr(toks, idx)
   M.expect(toks, idx, "semicolon")
   idx = idx + 1
   return assign, idx
@@ -250,6 +290,8 @@ function M.pstat(toks, idx)
       stat, idx = M.passign(toks, idx)
     else
       stat, idx = M.pcall_expr(toks, idx)
+      M.expect(toks, idx, "semicolon")
+      idx = idx + 1
     end
   elseif contains(M.types, tok.value) then
     stat, idx = M.pvar_decl(toks, idx)
