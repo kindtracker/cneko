@@ -206,16 +206,8 @@ function M.preturn(toks, idx)
   ret.type = "return"
   ret.value = 0
   idx = idx + 1
-  tok = toks[idx]
-
-  if tok.type == "number" or tok.type == "ident" then
-    ret.value = tok
-    idx = idx + 1
-    M.expect(toks, idx, "semicolon")
-  elseif tok.type == "semicolon" then
-  else
-    logger.error("%s:%d:%d: expected number, identifier, or semicolon for return", tok.fname, tok.line, tok.row)
-  end
+  ret.value, idx = M.pexpr(toks, idx)
+  M.expect(toks, idx, "semicolon")
   idx = idx + 1
   return ret, idx
 end
