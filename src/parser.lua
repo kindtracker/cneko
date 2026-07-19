@@ -32,7 +32,7 @@ function M.pblock(toks, idx)
   
   M.expect(toks, idx, "lbrace");
   idx = idx + 1
-  while idx <= #toks do 
+  while idx <= #toks do
     local tok = toks[idx]
     if tok.type == "rbrace" then
       break
@@ -257,7 +257,7 @@ function M.passign(toks, idx)
   idx = idx + 1
   M.expect(toks, idx, "operator")
   idx = idx + 1
-  assign.value = M.pexpr(toks, idx)
+  assign.value, idx = M.pexpr(toks, idx)
   M.expect(toks, idx, "semicolon")
   idx = idx + 1
   return assign, idx
@@ -280,6 +280,28 @@ function M.pif(toks, idx)
   return ifs, idx
 end
 
+function M.pfor(toks, idx)
+  local fors = {}
+  fors.type = "for"
+  M.expect(toks, idx, "lparen")
+  idx = idx + 1
+  fors.init, idx = M.pstat(toks, idx)
+  fors.cond, idx = M.pexpr(toks, idx)
+  idx = idx + 1
+  fors.inc, idx = M.pstat(toks, idx)
+  M.expect(toks, idx, "rparen")
+  idx = idx + 1
+
+  if toks[idx].type == "lbrace" then
+    fors.body, idx = M.pblock(toks, idx)
+  else
+    local stat
+    stat, idx = M.pstat(toks, idx)
+    fors.body = {stat}
+  end
+  return fors, idx
+end
+
 function M.pstat(toks, idx)
   local stat = {}
   local tok = toks[idx]
@@ -291,6 +313,13 @@ function M.pstat(toks, idx)
     elseif tok.value == "if" then
       idx = idx + 1
       stat, idx = M.pif(toks, idx)
+    elseif tok.value == "while" then
+      idx = idx + 1
+      stat, idx = M.pif(toks, idx)
+      stat.type = "while"
+    elseif tok.value == "for" then
+      idx = idx + 1
+      stat, idx = M.pfor(toks, idx)
     elseif tok.value == "return" then
       stat, idx = M.preturn(toks, idx)
     else

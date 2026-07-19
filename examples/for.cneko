@@ -1,0 +1,9 @@
+fn main() -> int {
+  for (int i = 0; i < 16; a = b + 1;) {
+    std:io:printfn("%d", i);
+  }
+
+  for (int i = 0; i < 16; i++;) std:io:printfn("%d but it's in single line version", i);
+
+  return 0;
+}
