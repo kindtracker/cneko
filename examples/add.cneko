@@ -4,6 +4,6 @@ fn add(a: int, b: int) -> int {
 
 fn main(argc: int, argv: string[]) -> int {
   int c = add(1, 1);
-  std:io:printf(c);
+  std:io:printfn(c);
   return c;
 }

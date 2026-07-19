@@ -1,9 +1,8 @@
-fn add(a: int, b: int) -> int {
-  return a + b;
-}
-
 fn main(argc: int, argv: string[]) -> int {
   int c = add(1, 1);
-  std:io:printf(c);
+  if (c > 16) {
+    std:io:printfn("The number is higher than 16");
+  }
+  std:io:printfn(c);
   return c;
 }

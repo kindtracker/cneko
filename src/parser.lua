@@ -263,6 +263,23 @@ function M.passign(toks, idx)
   return assign, idx
 end
 
+function M.pif(toks, idx)
+  local ifs = {}
+  ifs.type = "if"
+  M.expect(toks, idx, "lparen")
+  idx = idx + 1
+  ifs.cond, idx = M.pexpr(toks, idx)
+  M.expect(toks, idx, "rparen")
+  idx = idx + 1
+  
+  if toks[idx].type == "lbrace" then
+    ifs.body, idx = M.pblock(toks, idx)
+  else
+    ifs.body, idx = {M.pstat(toks, idx)}
+  end
+  return ifs, idx
+end
+
 function M.pstat(toks, idx)
   local stat = {}
   local tok = toks[idx]
@@ -271,6 +288,9 @@ function M.pstat(toks, idx)
     if tok.value == "fn" then
       idx = idx + 1
       stat, idx = M.pfunc(toks, idx)
+    elseif tok.value == "if" then
+      idx = idx + 1
+      stat, idx = M.pif(toks, idx)
     elseif tok.value == "return" then
       stat, idx = M.preturn(toks, idx)
     else
