@@ -97,7 +97,6 @@ function M.pexpr(toks, idx)
   return expr, idx
 end
 
--- const int[1+1]
 function M.ptype(toks, idx)
   local t = {
     ["const"] = false,
@@ -255,9 +254,15 @@ function M.passign(toks, idx)
   assign.type = "assign"  
   assign.name = M.expect(toks, idx, "ident").value
   idx = idx + 1
-  M.expect(toks, idx, "operator")
+  local op_tok = M.expect(toks, idx, "operator")
   idx = idx + 1
-  assign.value, idx = M.pexpr(toks, idx)
+  local ntok = toks[idx]
+  if (op_tok.value == "+" and ntok.value == "+") or (op_tok.value == "-" and ntok.value == "-") then
+    idx = idx + 1
+    assign.value = {type = "postfix", op = op_tok.value .. toks[idx-1].value, expr = {type = "ident", value = assign.name}}
+  else
+    assign.value, idx = M.pexpr(toks, idx)
+  end
   M.expect(toks, idx, "semicolon")
   idx = idx + 1
   return assign, idx

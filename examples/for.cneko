@@ -1,5 +1,5 @@
 fn main() -> int {
-  for (int i = 0; i < 16; a = b + 1;) {
+  for (int i = 0; i < 16; i++;) {
     std:io:printfn("%d", i);
   }
 
