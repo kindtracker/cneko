@@ -1,8 +1,8 @@
-local helper = require("src/helper")
-local logger = require("src/logger")
+local helper = require("helper")
+local logger = require("logger")
 local contains = helper.contains
 
-local inspect = require("src/inspect")
+local inspect = require("inspect")
 
 local M = {}
 
@@ -77,6 +77,12 @@ function M.pexpr(toks, idx)
   while idx <= #toks and toks[idx].type == "operator" do
     local op = toks[idx].value
     idx = idx + 1
+
+    if toks[idx].type == "operator" then
+      op = op .. toks[idx].value
+      idx = idx + 1
+    end
+
     local right_tok = toks[idx]
     local right
     if right_tok.type == "lparen" then
@@ -268,9 +274,9 @@ function M.passign(toks, idx)
   return assign, idx
 end
 
-function M.pif(toks, idx)
+function M.pif(toks, idx, w)
   local ifs = {}
-  ifs.type = "if"
+  ifs.type = w and "while" or "if"
   M.expect(toks, idx, "lparen")
   idx = idx + 1
   ifs.cond, idx = M.pexpr(toks, idx)
@@ -280,7 +286,26 @@ function M.pif(toks, idx)
   if toks[idx].type == "lbrace" then
     ifs.body, idx = M.pblock(toks, idx)
   else
-    ifs.body, idx = {M.pstat(toks, idx)}
+    local ifss, idx = M.pstat(toks, idx)
+    ifs.body = {ifss}
+  end
+  
+  if toks[idx].type == "keyword" and toks[idx].value == "else" then
+    if w then
+      logger.error("else statements can't have if body")
+    end
+    idx = idx + 1
+    
+    if toks[idx].type == "keyword" and toks[idx].value == "if" then
+      idx = idx + 1
+      ifs.else_body, idx = M.pif(toks, idx, w)
+    elseif toks[idx].type == "lbrace" then
+      local ifss, idx = M.pblock(toks, idx)
+      ifs.else_body = {ifss}
+    else 
+      local ifss, idx = M.pstat(toks, idx)
+      ifs.else_body = {ifss}
+    end
   end
   return ifs, idx
 end
@@ -307,6 +332,31 @@ function M.pfor(toks, idx)
   return fors, idx
 end
 
+function M.pimport(toks, idx)
+  local import = {}
+  import.type = "call"
+  local namespace = {}
+
+  M.expect(toks, idx, "keyword")
+  idx = idx + 1
+  
+  local tok = M.expect(toks, idx, "ident")
+  table.insert(namespace, tok.value)
+  idx = idx + 1
+  
+  while idx <= #toks and toks[idx].type == "colon" do
+    idx = idx + 1
+    if toks[idx].type == "ident" then
+      table.insert(namespace, toks[idx].value)
+      idx = idx + 1
+    end
+  end
+  import.namespace = namespace 
+  M.expect(toks, idx, "semicolon")
+  idx = idx + 1
+  return import, idx
+end
+
 function M.pstat(toks, idx)
   local stat = {}
   local tok = toks[idx]
@@ -317,16 +367,18 @@ function M.pstat(toks, idx)
       stat, idx = M.pfunc(toks, idx)
     elseif tok.value == "if" then
       idx = idx + 1
-      stat, idx = M.pif(toks, idx)
+      stat, idx = M.pif(toks, idx, false)
     elseif tok.value == "while" then
       idx = idx + 1
-      stat, idx = M.pif(toks, idx)
+      stat, idx = M.pif(toks, idx, white)
       stat.type = "while"
     elseif tok.value == "for" then
       idx = idx + 1
       stat, idx = M.pfor(toks, idx)
     elseif tok.value == "return" then
       stat, idx = M.preturn(toks, idx)
+    elseif tok.value == "import" then
+      stat, idx = M.pimport(toks, idx)
     else
       logger.error("%s:%d:%d: no match for token: %s (%s)", tok.fname, tok.line, tok.row, tok.value, tok.type)
     end

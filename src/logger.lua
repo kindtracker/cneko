@@ -10,14 +10,20 @@ local magenta = "\27[35m"
 local cyan = "\27[36m"
 local white = "\27[37m"
 
+local debug_mode = false
+
 function M.log(text, ...)
-  local source = debug.getinfo(2).source
-  print(string.format("[" .. green .. "log" .. reset .. "] %s: " .. text, source, ...))
+  if debug_mode then
+    local source = debug.getinfo(2).source
+    print(string.format("[" .. green .. "log" .. reset .. "] %s: " .. text, source, ...))
+  end
 end
 
 function M.warning(text, ...)
-  local source = debug.getinfo(2).source
-  print(string.format("[" .. yellow .. "warning" .. reset .. "] %s: " .. text, source, ...))
+  if debug_mode then
+    local source = debug.getinfo(2).source
+    print(string.format("[" .. yellow .. "warning" .. reset .. "] %s: " .. text, source, ...))
+  end
 end
 
 function M.error(text, ...)

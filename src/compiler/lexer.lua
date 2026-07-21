@@ -1,5 +1,5 @@
-local helper = require("src/helper")
-local logger = require("src/logger")
+local helper = require("helper")
+local logger = require("logger")
 local contains = helper.contains
 
 local M = {}

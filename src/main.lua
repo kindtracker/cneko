@@ -1,23 +1,9 @@
-local helper = require("src/helper")
-local lexer = require("src/lexer")
-local parser = require("src/parser")
-local logger = require("src/logger")
+local script = debug.getinfo(1, "S").source:sub(2)
+local dir = script:match("(.*/)")
+package.path = dir .. "?.lua;" .. dir .. "?/init.lua;" .. package.path
 
-local inspect = require("src/inspect")
+local cneko = require("cneko")
+local inspect = require("inspect")
 
-local fname = arg[1]
-local f = io.open(fname, "r")
-if not f then
-  logger.error("cannot open " .. fname)
-end
-
-local program = f:read("*all")
-f:close()
-
-logger.log("lexing %s file", fname)
-local toks = lexer.l(fname, program)
--- print("tokens: " .. inspect(toks))
-
-logger.log("parsing %s file", fname)
-local ast = parser.p(toks)
-print("ast: " .. inspect(ast))
+local ast = cneko.compile(arg[1])
+print(inspect(ast))

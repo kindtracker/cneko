@@ -1,4 +1,6 @@
 fn main(argc: int, argv: string[]) -> int {
-  test++;
+  if (i == 1) {
+    io:printfn("one");
+  }
   return 0;
 }
